@@ -37,9 +37,16 @@ static char* CopyString(const char* season_info){
     return info_aux;
 }
 
+static void MakeDriver(char* word, Season season, int num_of_drivers,
+                        int num_of_teams, Driver * drivers, Team * teams){
+    DriverStatus driver_status;
+    drivers[num_of_drivers] = DriverCreate(&driver_status, word,
+                                           num_of_drivers+1);
+    DriverSetTeam(drivers[num_of_drivers], teams[num_of_teams]);
+    TeamAddDriver(teams[num_of_teams], drivers[num_of_drivers]);
+    DriverSetSeason(drivers[num_of_drivers], season);
+}
 
-
-//Should be "Season" not "struct season"!
 Season SeasonCreate(SeasonStatus* status, const char* season_info) {
     Season season = malloc(sizeof(*season));
 
@@ -80,21 +87,13 @@ Season SeasonCreate(SeasonStatus* status, const char* season_info) {
             TeamStatus team_status;
             season->teams[season->numOfTeams] = TeamCreate(&team_status, word);
             season->numOfTeams++;
-
         }
 
         //make driver
         else if (strcmp(word, "None")) {
-            DriverStatus driver_status;
-            season->drivers[season->numOfDrivers] =
-                    DriverCreate(&driver_status, word, season->numOfDrivers+1);
-            DriverSetTeam(season->drivers[season->numOfDrivers],
-                            season->teams[season->numOfTeams-1]);
-            TeamAddDriver(season->teams[season->numOfTeams-1],
-                          season->drivers[season->numOfDrivers]);
-            DriverSetSeason(season->drivers[season->numOfDrivers], season);
+            MakeDriver(word, season, season->numOfDrivers, season->numOfTeams-1,
+                        season->drivers, season->teams);
             season->numOfDrivers++;
-
         }
 
         counter++;
@@ -150,15 +149,15 @@ int SeasonGetNumberOfTeams(Season season) {
         return 0;
     }
     return season->numOfTeams;
-}
-SeasonStatus SeasonAddRaceResult(Season season, int* results) {
-    if (season == NULL || results == NULL || season->numOfDrivers <= 0 ||
-        season->drivers == NULL) {
-        return SEASON_NULL_PTR;
-    }
+}/*
+        SeasonStatus SeasonAddRaceResult(Season season, int* results) {
+            if (season == NULL || results == NULL || season->numOfDrivers <= 0 ||
+                season->drivers == NULL) {
+                return SEASON_NULL_PTR;
+            }
 
-    for(int i=0; i < season->numOfDrivers ; i++)
-    {
+            for(int i=0; i < season->numOfDrivers ; i++)
+            {
         for(int position=0; position < season->numOfDrivers; position++) {
             if (DriverGetId((season->drivers)[i]) == results[position]) {
                 DriverStatus status =
@@ -168,8 +167,8 @@ SeasonStatus SeasonAddRaceResult(Season season, int* results) {
         }
     }
 
-    driver_bubble_sort(season->drivers, season->numOfDrivers);
-    team_bubble_sort(season->teams, season->numOfTeams);
+    //driver_bubble_sort(season->drivers, season->numOfDrivers);
+    //team_bubble_sort(season->teams, season->numOfTeams);
     return SEASON_OK;
 }
 /*
@@ -194,7 +193,7 @@ static Team * sortTeam(Season season){
     team_bubble_sort(sorted_teams, season);
     return sorted_teams;
 }
-
+*/
 static void swap_driver(int a, int b, Driver * arr){
     void * temp = arr[a];
     arr[a] = arr[b];
@@ -236,8 +235,8 @@ static void driver_bubble_sort(Driver * drivers, int number_or_drivers){
     }
 }
 
-static void team_bubble_sort(Team * sorted_teams, Season season){
-    int len = SeasonGetNumberOfTeams(season)-1, not_sorted=1;
+static void team_bubble_sort(Team * sorted_teams, int num_of_teams){
+    int len = num_of_teams-1, not_sorted=1;
     while(len > 1 && not_sorted)
     {
         not_sorted=0;
@@ -245,7 +244,7 @@ static void team_bubble_sort(Team * sorted_teams, Season season){
         {
             TeamStatus status1, status2;
             if(TeamGetPoints(sorted_teams[i-1], &status1) >=
-               TeamGetPoints(sorted_teams[i], &status1)) {
+               TeamGetPoints(sorted_teams[i], &status2)) {
                 swap_teams(i, i - 1, sorted_teams);
                 not_sorted = 1;
             }
