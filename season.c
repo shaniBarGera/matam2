@@ -18,14 +18,10 @@ static void SeasonSetStatus(SeasonStatus *status,
 static char* CopyString(const char* season_info);
 static void MakeDriver(char* word, Season season, int num_of_drivers,
                        int num_of_teams, Driver * drivers, Team * teams);
-static int CountRows(const char* info_aux);
 static void swap_driver(int a, int b, Driver * arr);
 static void swap_teams(int a, int b, Team * arr);
 static void QuickSortDrivers(Driver * drivers ,int n);
 static void QuickSortTeams(Team * teams ,int n);
-static void initializeTeams(Team* teams, int len);
-static void initializeDrivers(Driver* drivers, int len);
-static void CountDrivers(const char* info_aux);
 
 int GetYear(Season season) {return season->year;}
 Season SeasonCreate(SeasonStatus* status, const char* season_info) {
@@ -37,8 +33,9 @@ Season SeasonCreate(SeasonStatus* status, const char* season_info) {
         return NULL;
     }
 
+    //Split info to words
     char* info_aux = CopyString(season_info);
-    //int rows_num = CountRows(info_aux);
+    char * word = strtok(info_aux, "\n");
 
     //allocate memory to arrays and initialize them
     season->teams = malloc(sizeof(Team));
@@ -46,15 +43,11 @@ Season SeasonCreate(SeasonStatus* status, const char* season_info) {
     if(!season->teams || !season->drivers){
         SeasonSetStatus(status ,SEASON_MEMORY_ERROR);
         free(info_aux);
+        free(word);
         return NULL;
     }
-
-    initializeTeams(season->teams, 1);
-    initializeDrivers(season->drivers, 1);
-
-
-    //Split info aux
-    char * word = strtok(info_aux, "\n");
+    season->teams[0] = NULL;
+    season->drivers[0] = NULL;
 
     //Enter year
     season->year = atoi(word);
@@ -74,7 +67,6 @@ Season SeasonCreate(SeasonStatus* status, const char* season_info) {
             season->teams = (Team*)realloc(season->teams, sizeof(Team)*
                     (season->numOfTeams+1));
             season->teams[season->numOfTeams] = TeamCreate(&team_status, word);
-            PrintTeam(season->teams[season->numOfTeams]);
             season->numOfTeams++;
         }
 
@@ -92,26 +84,19 @@ Season SeasonCreate(SeasonStatus* status, const char* season_info) {
         word = strtok(NULL, "\n");
     }
     free(info_aux);
+    free(word);
     return season;
 }
 void SeasonDestroy(Season season) {
     if(season == NULL)return;
-    printf("Destroying %d drivers\n",season->numOfDrivers);
     if(season->drivers != NULL) {
-        for (int i = 0; i < season->numOfDrivers; i++) {
-            printf("%d\n",i);
-            PrintDriver(season->drivers[i]);
+        for (int i = 0; i < season->numOfDrivers; i++){
             DriverDestroy(season->drivers[i]);
-            printf("Destroyed\n");
         }
     }
-    printf("Destroying %d teams\n",season->numOfTeams);
     if(season->teams != NULL) {
         for (int i = 0; i < season->numOfTeams; i++) {
-            printf("%d\n",i);
-            PrintTeam(season->teams[i]);
             TeamDestroy(season->teams[i]);
-            printf("destroyed\n");
         }
     }
     free(season->teams);
@@ -202,18 +187,6 @@ static char* CopyString(const char* season_info){
     strcpy(info_aux, season_info);
     return info_aux;
 }
-static int CountRows(const char* info_aux) {
-    int numOfRows = 1;
-    char i = 0;
-    while (info_aux[i]) {
-        if (info_aux[i] == '\n') {
-            numOfRows++;
-        }
-        i++;
-    }
-    return numOfRows;
-}
-
 static void MakeDriver(char* word, Season season, int num_of_drivers,
                        int num_of_teams, Driver * drivers, Team * teams){
     DriverStatus driver_status;
@@ -272,14 +245,4 @@ static void QuickSortTeams(Team * teams ,int n){
     swap_teams(0, t, teams);
     QuickSortTeams(teams, t);
     QuickSortTeams(teams+t+1, n-t-1);
-}
-static void initializeTeams(Team* teams, int len) {
-    for (int i = 0; i < len; i++) {
-        teams[i] = NULL;
-    }
-}
-static void initializeDrivers(Driver* drivers, int len) {
-    for (int i = 0; i < len; i++) {
-        drivers[i] = NULL;
-    }
 }
