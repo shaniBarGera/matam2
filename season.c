@@ -76,10 +76,10 @@ Season SeasonCreate(SeasonStatus* status, const char* season_info) {
                     (season->numOfDrivers+1));
             MakeDriver(word, season, season->numOfDrivers, season->numOfTeams-1,
                         season->drivers, season->teams);
-            PrintDriver(season->drivers[season->numOfDrivers]);
+            //PrintDriver(season->drivers[season->numOfDrivers]);
             season->numOfDrivers++;
         }
-        if(counter %3 == 2) PrintTeam(season->teams[season->numOfTeams-1]);
+        //if(counter %3 == 2) PrintTeam(season->teams[season->numOfTeams-1]);
         counter++;
         word = strtok(NULL, "\n");
     }
@@ -175,7 +175,20 @@ int SeasonGetNumberOfTeams(Season season) {
     return season->numOfTeams;
 }
 SeasonStatus SeasonAddRaceResult(Season season, int* results) {
-
+    if(season == NULL || results == NULL ||season->drivers == NULL)
+        return SEASON_NULL_PTR;
+    for(int i = 0; i<season->numOfDrivers; i++)
+    {
+        //PrintDriver(season->drivers[i]);
+        int position = 0, Id = DriverGetId(season->drivers[i]);
+        while(Id != results[position]){
+            position++;
+        }
+        DriverAddRaceResult(season->drivers[i], position+1);
+        printf("position=%d\n",position+1);
+        //PrintDriver(season->drivers[i]);
+    }
+    return SEASON_OK;
 }
 
 static void SeasonSetStatus(SeasonStatus *status, SeasonStatus wanted_status) {
