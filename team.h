@@ -16,6 +16,7 @@ typedef enum teamStatus {
     TEAM_FULL} TeamStatus;
 typedef enum driverNumber {FIRST_DRIVER, SECOND_DRIVER} DriverNumber;
 
+void PrintTeam(Team team);
 
 Team TeamCreate(TeamStatus* status, char* name);
 void TeamDestroy(Team team);

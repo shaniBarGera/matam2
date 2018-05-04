@@ -25,9 +25,9 @@ static void QuickSortDrivers(Driver * drivers ,int n);
 static void QuickSortTeams(Team * teams ,int n);
 static void initializeTeams(Team* teams, int len);
 static void initializeDrivers(Driver* drivers, int len);
+static void CountDrivers(const char* info_aux);
 
-//int GetYear(Season season) {return season->year;}
-
+int GetYear(Season season) {return season->year;}
 Season SeasonCreate(SeasonStatus* status, const char* season_info) {
     Season season = malloc(sizeof(*season));
 
@@ -38,19 +38,19 @@ Season SeasonCreate(SeasonStatus* status, const char* season_info) {
     }
 
     char* info_aux = CopyString(season_info);
-    int rows_num = CountRows(info_aux);
+    //int rows_num = CountRows(info_aux);
 
     //allocate memory to arrays and initialize them
-    season->teams = malloc(sizeof(Team) *((rows_num-1)/3));
-    season->drivers = malloc(sizeof(Driver)*((rows_num-1)/3)*2);
+    season->teams = malloc(sizeof(Team));
+    season->drivers = malloc(sizeof(Driver));
     if(!season->teams || !season->drivers){
         SeasonSetStatus(status ,SEASON_MEMORY_ERROR);
         free(info_aux);
         return NULL;
     }
 
-    initializeTeams(season->teams, (rows_num-1)/3);
-    initializeDrivers(season->drivers, ((rows_num-1)/3)*2);
+    initializeTeams(season->teams, 1);
+    initializeDrivers(season->drivers, 1);
 
 
     //Split info aux
@@ -71,17 +71,23 @@ Season SeasonCreate(SeasonStatus* status, const char* season_info) {
         //make team
         if (counter % 3 == 0) {
             TeamStatus team_status;
+            season->teams = (Team*)realloc(season->teams, sizeof(Team)*
+                    (season->numOfTeams+1));
             season->teams[season->numOfTeams] = TeamCreate(&team_status, word);
+            PrintTeam(season->teams[season->numOfTeams]);
             season->numOfTeams++;
         }
 
         //make driver
         else if (strcmp(word, "None")) {
+            season->drivers = (Driver*)realloc(season->drivers, sizeof(Driver)*
+                    (season->numOfDrivers+1));
             MakeDriver(word, season, season->numOfDrivers, season->numOfTeams-1,
                         season->drivers, season->teams);
+            PrintDriver(season->drivers[season->numOfDrivers]);
             season->numOfDrivers++;
         }
-
+        if(counter %3 == 2) PrintTeam(season->teams[season->numOfTeams-1]);
         counter++;
         word = strtok(NULL, "\n");
     }
@@ -89,10 +95,25 @@ Season SeasonCreate(SeasonStatus* status, const char* season_info) {
     return season;
 }
 void SeasonDestroy(Season season) {
-    for(int i=0; i<season->numOfDrivers; i++)
-        DriverDestroy(season->drivers[i]);
-    for(int i=0; i<season->numOfTeams; i++)
-        TeamDestroy(season->teams[i]);
+    if(season == NULL)return;
+    printf("Destroying %d drivers\n",season->numOfDrivers);
+    if(season->drivers != NULL) {
+        for (int i = 0; i < season->numOfDrivers; i++) {
+            printf("%d\n",i);
+            PrintDriver(season->drivers[i]);
+            DriverDestroy(season->drivers[i]);
+            printf("Destroyed\n");
+        }
+    }
+    printf("Destroying %d teams\n",season->numOfTeams);
+    if(season->teams != NULL) {
+        for (int i = 0; i < season->numOfTeams; i++) {
+            printf("%d\n",i);
+            PrintTeam(season->teams[i]);
+            TeamDestroy(season->teams[i]);
+            printf("destroyed\n");
+        }
+    }
     free(season->teams);
     free(season->drivers);
     free(season);
@@ -119,7 +140,6 @@ Driver SeasonGetDriverByPosition(Season season, int position, SeasonStatus* stat
     free(sorted_drivers);
     return driver;
 }
-
 Driver* SeasonGetDriversStandings(Season season) {
     if(season == NULL) return NULL;
     Driver * sorted_drivers = malloc(sizeof(Driver)*season->numOfDrivers);
@@ -127,7 +147,6 @@ Driver* SeasonGetDriversStandings(Season season) {
     QuickSortDrivers(sorted_drivers, season->numOfDrivers);
     return sorted_drivers;
 }
-
 Team SeasonGetTeamByPosition(Season season, int position, SeasonStatus* status) {
     if (season == NULL)
         return NULL;
@@ -158,7 +177,6 @@ Team* SeasonGetTeamsStandings(Season season) {
     QuickSortTeams(sorted_teams, season->numOfTeams);
     return sorted_teams;
 }
-
 int SeasonGetNumberOfDrivers(Season season) {
     if (season == NULL) {
         return 0;
@@ -171,7 +189,6 @@ int SeasonGetNumberOfTeams(Season season) {
     }
     return season->numOfTeams;
 }
-
 SeasonStatus SeasonAddRaceResult(Season season, int* results) {
 
 }
@@ -179,14 +196,12 @@ SeasonStatus SeasonAddRaceResult(Season season, int* results) {
 static void SeasonSetStatus(SeasonStatus *status, SeasonStatus wanted_status) {
     if (status != NULL) *status = wanted_status;
 }
-
 static char* CopyString(const char* season_info){
     int len = strlen(season_info);
     char* info_aux = malloc(len);
     strcpy(info_aux, season_info);
     return info_aux;
 }
-
 static int CountRows(const char* info_aux) {
     int numOfRows = 1;
     char i = 0;
@@ -208,19 +223,16 @@ static void MakeDriver(char* word, Season season, int num_of_drivers,
     TeamAddDriver(teams[num_of_teams], drivers[num_of_drivers]);
     DriverSetSeason(drivers[num_of_drivers], season);
 }
-
 static void swap_driver(int a, int b, Driver * arr){
     void * temp = arr[a];
     arr[a] = arr[b];
     arr[b] = temp;
 }
-
 static void swap_teams(int a, int b, Team * arr){
     Team temp = arr[a];
     arr[a] = arr[b];
     arr[b] = temp;
 }
-
 static void QuickSortDrivers(Driver * drivers ,int n){
     int p, b = 1, t = n-1;
     DriverStatus status;
@@ -241,7 +253,6 @@ static void QuickSortDrivers(Driver * drivers ,int n){
     QuickSortDrivers(drivers, t);
     QuickSortDrivers(drivers+t+1, n-t-1);
 }
-
 static void QuickSortTeams(Team * teams ,int n){
     int p, b = 1, t = n-1;
     TeamStatus status;
@@ -262,7 +273,6 @@ static void QuickSortTeams(Team * teams ,int n){
     QuickSortTeams(teams, t);
     QuickSortTeams(teams+t+1, n-t-1);
 }
-
 static void initializeTeams(Team* teams, int len) {
     for (int i = 0; i < len; i++) {
         teams[i] = NULL;

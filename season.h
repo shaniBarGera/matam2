@@ -13,7 +13,6 @@ typedef struct season* Season;
 #include"team.h"
 #include"driver.h"
 
-
 typedef enum seasonStatus {
     SEASON_OK,
     SEASON_MEMORY_ERROR,
@@ -29,5 +28,6 @@ Team* SeasonGetTeamsStandings(Season season);
 int SeasonGetNumberOfDrivers(Season season);
 int SeasonGetNumberOfTeams(Season season);
 SeasonStatus SeasonAddRaceResult(Season season, int* results);
+int GetYear(Season season);
 
 #endif /* SEASON_H_ */

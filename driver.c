@@ -6,6 +6,7 @@
 #include "team.h"
 #include "season.h"
 #include <stdlib.h>
+#include <stdio.h>
 
 struct driver {
     int Id;
@@ -14,6 +15,19 @@ struct driver {
     int points;
     Season season;
 };
+
+void PrintDriver(Driver driver){
+    printf("Driver: ");
+    if(driver == NULL) {
+        printf("null\n");
+    }
+    else {
+        printf("name:%s\nId:%d\nteam:%s\npoints:%d\nseason:%d\n",
+               driver->name, driver->Id, TeamGetName(driver->team),
+               driver->points,
+               GetYear(driver->season));
+    }
+}
 
 static void DriverSetStatus(DriverStatus *status, enum driverStatus wanted_status);
 
@@ -28,30 +42,24 @@ Driver DriverCreate(DriverStatus* status, char* driver_name, int driverId) {
     }
     return driver;
 }
-
 void DriverDestroy(Driver driver){
     free(driver);
 }
-
 const char* DriverGetName(Driver driver){
     if(driver == NULL) return NULL;
     return driver->name;
 }
-
 int DriverGetId(Driver driver){
     if(driver ==  NULL) return 0;
     return driver->Id;
 }
-
 Team  DriverGetTeam(Driver driver){
     if(driver == NULL) return NULL;
     return driver->team;
 }
-
 void  DriverSetTeam(Driver driver, Team team){
     if(driver != NULL) driver->team = team;
 }
-
 void  DriverSetSeason(Driver driver, Season season){
     if(driver != NULL){
         driver->season = season;
@@ -67,7 +75,6 @@ DriverStatus DriverAddRaceResult(Driver driver, int position){
     driver->points += SeasonGetNumberOfDrivers(driver->season) - position;
     return DRIVER_STATUS_OK;
 }
-
 int DriverGetPoints(Driver driver, DriverStatus* status) {
     if(driver == NULL) {
         DriverSetStatus(status, INVALID_DRIVER);
