@@ -12,13 +12,14 @@ struct team {
     Driver driver1;
     Driver driver2;
 };
+static void TeamSetStatus(TeamStatus *status, enum teamStatus wanted_status);
 
 Team TeamCreate(TeamStatus* status, char* name){
     Team team = malloc(sizeof(*team));
-    if(team == NULL) *status = TEAM_MEMORY_ERROR;
+    if(team == NULL)  TeamSetStatus(status, TEAM_MEMORY_ERROR);
     else {
         team->name = name;
-        *status = TEAM_STATUS_OK;
+        TeamSetStatus(status, TEAM_STATUS_OK);
         team->driver1 = NULL;
         team->driver2 = NULL;
     }
@@ -61,4 +62,8 @@ int TeamGetPoints(Team  team, TeamStatus *status){
                DriverGetPoints(team->driver2, &driver_status);
     }
     return 0;
+}
+
+static void TeamSetStatus(TeamStatus *status, enum teamStatus wanted_status) {
+    if (status != NULL) *status = wanted_status;
 }

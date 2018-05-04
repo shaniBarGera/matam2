@@ -15,14 +15,16 @@ struct driver {
     Season season;
 };
 
+static void DriverSetStatus(DriverStatus *status, enum driverStatus wanted_status);
+
 Driver DriverCreate(DriverStatus* status, char* driver_name, int driverId) {
     Driver driver = malloc(sizeof(*driver));
-    if(driver == NULL) *status = DRIVER_MEMORY_ERROR;
+    if(driver == NULL) DriverSetStatus(status, DRIVER_MEMORY_ERROR);
     else {
-    driver->Id = driverId;
-    driver->name = driver_name;
-    driver->points = 0;
-    *status = DRIVER_STATUS_OK;
+        driver->Id = driverId;
+        driver->name = driver_name;
+        driver->points = 0;
+        DriverSetStatus(status, DRIVER_STATUS_OK);;
     }
     return driver;
 }
@@ -56,20 +58,26 @@ void  DriverSetSeason(Driver driver, Season season){
         driver->points = 0;
     }
 }
-
+Season DriverGetSeason(Driver driver){
+    return driver->season;}
 DriverStatus DriverAddRaceResult(Driver driver, int position){
     if(position <= 0) return INVALID_POSITION;
     if(driver == NULL) return INVALID_DRIVER;
     if(driver->season == NULL) return SEASON_NOT_ASSIGNED;
-    driver->points = SeasonGetNumberOfDrivers(driver->season) - position;
+    driver->points += SeasonGetNumberOfDrivers(driver->season) - position;
     return DRIVER_STATUS_OK;
 }
 
 int DriverGetPoints(Driver driver, DriverStatus* status) {
     if(driver == NULL) {
-        *status = INVALID_DRIVER;
+        DriverSetStatus(status, INVALID_DRIVER);
         return 0;
     }
-    else *status = DRIVER_STATUS_OK;
+
+    else DriverSetStatus(status, DRIVER_STATUS_OK);
     return driver->points;
+}
+
+static void DriverSetStatus(DriverStatus *status, enum driverStatus wanted_status) {
+    if (status != NULL) *status = wanted_status;
 }
