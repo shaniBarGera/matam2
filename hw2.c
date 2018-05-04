@@ -8,23 +8,9 @@ bool FindWord(const char * string, const char * word, int i);
 char * CopyEndOfString(char * new_string, const char * string, int i_dest, int i_src);
 
 int main() {
-    //Strings to check
-    printf("1.%s\n2.%s\n3.%s\n4.%s\n5.%s\n6.%s\n7.%s\n8.%s\n9.%s\n10.%s\n"
-                   "11.%s\n12.%s\n13.%s\n14.%s\n",
-           RemoveFirstAppearance("1c2caca3catc4catac", "cat"),
-           RemoveFirstAppearance("abcdcaccabbabc", "abc"),
-           RemoveFirstAppearance("cat", "cat"),
-           RemoveFirstAppearance("ca", "cat"),
-           RemoveFirstAppearance("caccabbcatdcadcatb", "catb"),
-           RemoveFirstAppearance("abcdcaccabbcatdcadcatb", NULL),
-           RemoveFirstAppearance( NULL , "cat"),
-           RemoveFirstAppearance(NULL,NULL),
-           RemoveFirstAppearance("tcacabcbabbbcacaca", "cat"),
-           RemoveFirstAppearance("cccabc", "abc"),
-           RemoveFirstAppearance("CccAbC", "abc"),
-           RemoveFirstAppearance("Abcabc","abc"),
-           RemoveFirstAppearance("ggghhhi", ""),
-           RemoveFirstAppearance("cabcde", "ABC"));
+    char * new_string = RemoveFirstAppearance("1c2caca3catc4catac", "cat"),
+    printf("%s",new_string);
+    free(new_string);
     return 0;
 }
 
