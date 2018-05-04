@@ -24,6 +24,7 @@ static void swap_teams(int a, int b, Team * arr);
 static void QuickSortDrivers(Driver * drivers ,int n);
 static void QuickSortTeams(Team * teams ,int n);
 static void initializeTeams(Team* teams, int len);
+static void initializeDrivers(Driver* drivers, int len);
 
 //int GetYear(Season season) {return season->year;}
 
