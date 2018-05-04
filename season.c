@@ -17,7 +17,16 @@ int GetYear(Season season)
 {
     return season->year;
 }
-
+static void initializeTeams(Team* teams, int len) {
+    for (int i = 0; i < len; i++) {
+        teams[i] = NULL;
+    }
+}
+static void initializeDrivers(Driver* drivers, int len) {
+    for (int i = 0; i < len; i++) {
+        drivers[i] = NULL;
+    }
+}
 static int CountRows(char* info_aux) {
     int numOfRows = 1;
     char i = 0;
@@ -30,6 +39,7 @@ static int CountRows(char* info_aux) {
     return numOfRows;
 }
 
+
 static char* CopyString(const char* season_info){
     int len = strlen(season_info);
     char* info_aux = malloc(len);
@@ -38,7 +48,7 @@ static char* CopyString(const char* season_info){
 }
 
 static void MakeDriver(char* word, Season season, int num_of_drivers,
-                        int num_of_teams, Driver * drivers, Team * teams){
+                       int num_of_teams, Driver * drivers, Team * teams){
     DriverStatus driver_status;
     drivers[num_of_drivers] = DriverCreate(&driver_status, word,
                                            num_of_drivers+1);
@@ -60,12 +70,15 @@ Season SeasonCreate(SeasonStatus* status, const char* season_info) {
     int rows_num = CountRows(info_aux);
 
     //allocate memory to arrays
-    season->teams = malloc(sizeof(Team) *((rows_num-1)/3));
+    season->teams = malloc(sizeof(Team)*((rows_num-1)/3));
     season->drivers = malloc(sizeof(Driver)*((rows_num-1)/3)*2);
+
     if(!season->teams || !season->drivers){
         *status = SEASON_MEMORY_ERROR;
         return NULL;
     }
+    initializeTeams(season->teams, (rows_num-1)/3);
+    initializeDrivers(season->drivers, ((rows_num-1)/3)*2);
 
     //Split info aux
     char * word = strtok(info_aux, "\n");
@@ -89,10 +102,10 @@ Season SeasonCreate(SeasonStatus* status, const char* season_info) {
             season->numOfTeams++;
         }
 
-        //make driver
+            //make driver
         else if (strcmp(word, "None")) {
             MakeDriver(word, season, season->numOfDrivers, season->numOfTeams-1,
-                        season->drivers, season->teams);
+                       season->drivers, season->teams);
             season->numOfDrivers++;
         }
 
@@ -103,14 +116,16 @@ Season SeasonCreate(SeasonStatus* status, const char* season_info) {
     return season;
 }
 
-void SeasonDestroy(Season season) {
+void SeasonDestroy(Season season) { //LO TOV! We have to free everything one by one
     free(season);
 }
 Driver SeasonGetDriverByPosition(Season season, int position, SeasonStatus* status) {
-    if (season == NULL || season->drivers == NULL || season->numOfDrivers <=0)
+    if (season == NULL || season->drivers == NULL || season->numOfDrivers <= 0) {
+        *status = SEASON_NULL_PTR;
         return NULL;
+    }
     if (position > season->numOfDrivers || position <= 0) {
-        *status = SEASON_INVALID_POSITION;
+        *status = SEASON_MEMORY_ERROR;
         return NULL;
     }
 
@@ -119,15 +134,19 @@ Driver SeasonGetDriverByPosition(Season season, int position, SeasonStatus* stat
 }
 
 Driver* SeasonGetDriversStandings(Season season) {
-    if(season == NULL) return NULL;
+    if(season == NULL) {
+        return NULL;
+    }
     return season->drivers;
 }
 
 Team SeasonGetTeamByPosition(Season season, int position, SeasonStatus* status) {
-    if (season == NULL || season->teams == NULL || season->numOfTeams <= 0)
+    if (season == NULL || season->teams == NULL || season->numOfTeams <= 0) {
+        *status = SEASON_NULL_PTR;
         return NULL;
+    }
     if (position > season->numOfTeams || position <= 0) {
-        *status = SEASON_INVALID_POSITION;
+        *status = SEASON_MEMORY_ERROR;
         return NULL;
     }
 
@@ -135,7 +154,9 @@ Team SeasonGetTeamByPosition(Season season, int position, SeasonStatus* status) 
     return season->teams[position - 1];
 }
 Team* SeasonGetTeamsStandings(Season season) {
-    if(season == NULL) return NULL;
+    if(season == NULL) {
+        return NULL;
+    }
     return season->teams;
 }
 int SeasonGetNumberOfDrivers(Season season) {
@@ -149,51 +170,48 @@ int SeasonGetNumberOfTeams(Season season) {
         return 0;
     }
     return season->numOfTeams;
-}/*
+}
         SeasonStatus SeasonAddRaceResult(Season season, int* results) {
             if (season == NULL || results == NULL || season->numOfDrivers <= 0 ||
                 season->drivers == NULL) {
                 return SEASON_NULL_PTR;
             }
-
-            for(int i=0; i < season->numOfDrivers ; i++)
+            for(int i = 0; i < season->numOfDrivers ; i++)
             {
-        for(int position=0; position < season->numOfDrivers; position++) {
-            if (DriverGetId((season->drivers)[i]) == results[position]) {
-                DriverStatus status =
-                        DriverAddRaceResult((season->drivers)[results[i]],
+                for(int position=0; position < season->numOfDrivers; position++) {
+                 if (DriverGetId((season->drivers)[i]) == results[position]) {
+                        DriverStatus status =
+                             DriverAddRaceResult((season->drivers)[results[i]],
                                             position);
             }
         }
     }
-
-    //driver_bubble_sort(season->drivers, season->numOfDrivers);
-    //team_bubble_sort(season->teams, season->numOfTeams);
+    driver_bubble_sort(season->drivers, season->numOfDrivers);
+    team_bubble_sort(season->teams, season->numOfTeams);
     return SEASON_OK;
 }
-/*
+
 static Driver * sortDrivers(Driver * drivers, int num){
     Driver * sorted_drivers = malloc(sizeof(Driver)*(SeasonGetNumberOfDrivers(season)));
     if(sorted_drivers == NULL) {
         free(sorted_drivers);
         return NULL;
     }
-    //copy_driver_arr(sorted_drivers, SeasonGetDriversStandings(season), season);
+    copy_driver_arr(sorted_drivers, SeasonGetDriversStandings(season), season);
     driver_bubble_sort(drivers, season->numOfDrivers);
     return sorted_drivers;
 }
-
 static Team * sortTeam(Season season){
     Team * sorted_teams = malloc(sizeof(Team)*(SeasonGetNumberOfTeams(season));
     if(sorted_teams == NULL) {
         free(sorted_teams);
         return NULL;
     }
-    //copy_teams_arr(sorted_teams, SeasonGetTeamsStandings(season), season);
+    copy_teams_arr(sorted_teams, SeasonGetTeamsStandings(season), season);
     team_bubble_sort(sorted_teams, season);
     return sorted_teams;
 }
-*/
+
 static void swap_driver(int a, int b, Driver * arr){
     void * temp = arr[a];
     arr[a] = arr[b];
@@ -204,19 +222,18 @@ static void swap_teams(int a, int b, Team * arr){
     arr[a] = arr[b];
     arr[b] = temp;
 }
-/*
+
 void copy_driver_arr(Driver * arr1, Driver * arr2, Season season){
     for(int i=0; i < SeasonGetNumberOfDrivers(season); i++) {
         arr1[i] = arr2[i];
     }
 }
-
 void copy_teams_arr(Team * arr1, Team * arr2, Season season){
     for(int i=0; i < SeasonGetNumberOfTeams(season); i++) {
         arr1[i] = arr2[i];
     }
 }
-*/
+
 static void driver_bubble_sort(Driver * drivers, int number_or_drivers){
     int len = number_or_drivers-1, not_sorted=1;
     while(len > 1 && not_sorted)
