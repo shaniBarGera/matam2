@@ -36,43 +36,56 @@ Fernando Alonso\n\
 None\n\
 ";
     Season season = SeasonCreate(&season_status,season_info);
-/*
-   // printf("year:%d\n",GetYear(season));
-    Team *teams = SeasonGetTeamsStandings(season);
-    int i=0;
-    printf("team num:%d\n",SeasonGetNumberOfTeams(season));
-    while(i < SeasonGetNumberOfTeams(season))
-    {
-        printf("name:%s\ndriver1:%s\ndriver2:%s\n",TeamGetName(teams[i]),
-        DriverGetName(TeamGetDriver(teams[i],FIRST_DRIVER)),
-               DriverGetName(TeamGetDriver(teams[i],SECOND_DRIVER)));
-        i++;
-        printf("%d\n",i);
-    }
-
-    Driver * drivers = SeasonGetDriversStandings(season);
-    i=0;
-    printf("drivers num:%d\n",SeasonGetNumberOfDrivers(season));
-    while(i < SeasonGetNumberOfDrivers(season))
-    {
-        DriverStatus driver_status;
-        /*printf("name:%s\nId:%d\nteam:%s\npoints:%d\nseason:%d\n",
-               DriverGetName(drivers[i]), DriverGetId(drivers[i]),
-               TeamGetName(DriverGetTeam(drivers[i])),
-               //DriverGetPoints(drivers[i], &driver_status),GetYear(DriverGetSeason(drivers[i])));
-        i++;
-        printf("%d\n",i);
-    }
-*/
-    printf("exit loop\n");
 
     int race_results[7] = {7, 1,3,2,4,5,6};
 
-    //SeasonAddRaceResult(season, race_results);
+    SeasonAddRaceResult(season, race_results);
+    Driver * drivers = SeasonGetDriversStandings(season);
+
+    for(int i=0; i<SeasonGetNumberOfDrivers(season); i++)
+    {
+        printf("%d.%s\t%d\n",i,
+               DriverGetName(drivers[i]), DriverGetPoints(drivers[i],
+                                                          &driver_status));
+    }
+    printf("\n");
+
+    Team * sorted_teams = SeasonGetTeamsStandings(season);
+
+    for(int i=0; i<SeasonGetNumberOfTeams(season); i++)
+    {
+        printf("%d.%s\t%d\n",i,
+               TeamGetName(sorted_teams[i]), TeamGetPoints(sorted_teams[i],
+                               &team_status));
+    }
+
+    int race_results2[7] = {4,6,5,7,2,3,1};
+    printf("\n");
+    SeasonAddRaceResult(season, race_results2);
+    drivers = SeasonGetDriversStandings(season);
+
+    for(int i=0; i<SeasonGetNumberOfDrivers(season); i++)
+    {
+        printf("%d.%s\t%d\n",i,
+               DriverGetName(SeasonGetDriversStandings(season)[i]),
+               DriverGetPoints(SeasonGetDriversStandings(season)[i],
+                               &driver_status));
+    }
+
+    sorted_teams = SeasonGetTeamsStandings(season);
+    printf("\n");
+    for(int i=0; i<SeasonGetNumberOfTeams(season); i++)
+    {
+        printf("%d.%s\t%d\n",i,
+               TeamGetName(sorted_teams[i]), TeamGetPoints(sorted_teams[i],
+                                                           &team_status));
+    }
+    free(drivers);
+    free(sorted_teams);
     printf("finish\n");
     DriverDestroy(Lewis);
     TeamDestroy(Mercedes);
-    printf("destroyed\n");
+    //printf("destroyed\n");
     SeasonDestroy(season);
 
     printf("Finished Testing Driver!\n");

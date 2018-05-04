@@ -9,6 +9,7 @@ struct season {
     int year;
     int numOfTeams;
     Team* teams;
+    int* last_game;
     int numOfDrivers;
     Driver* drivers;
 };
@@ -83,6 +84,12 @@ Season SeasonCreate(SeasonStatus* status, const char* season_info) {
         counter++;
         word = strtok(NULL, "\n");
     }
+
+    season->last_game = malloc(sizeof(int)*season->numOfDrivers);
+    for(int i =0; i<season->numOfDrivers; i++){
+        season->last_game[i] = 0;
+    }
+
     free(info_aux);
     free(word);
     return season;
@@ -99,6 +106,7 @@ void SeasonDestroy(Season season) {
             TeamDestroy(season->teams[i]);
         }
     }
+    free(season->last_game);
     free(season->teams);
     free(season->drivers);
     free(season);
@@ -126,10 +134,19 @@ Driver SeasonGetDriverByPosition(Season season, int position, SeasonStatus* stat
     return driver;
 }
 Driver* SeasonGetDriversStandings(Season season) {
-    if(season == NULL) return NULL;
-    Driver * sorted_drivers = malloc(sizeof(Driver)*season->numOfDrivers);
-    sorted_drivers = season->drivers;
+    if(season == NULL || season->drivers == NULL) return NULL;
+    Driver * sorted_drivers = season->drivers;
+    DriverStatus driver_status;
     QuickSortDrivers(sorted_drivers, season->numOfDrivers);
+    for(int i=1; i<season->numOfDrivers;i++){
+        if(DriverGetPoints(sorted_drivers[i], &driver_status) ==
+                DriverGetPoints(sorted_drivers[i-1],&driver_status)){
+            if(season->last_game[DriverGetId(sorted_drivers[i])-1]>
+                    season->last_game[DriverGetId(sorted_drivers[i-1])-1]){
+                swap_driver(i, i-1, sorted_drivers);
+            }
+        }
+    }
     return sorted_drivers;
 }
 Team SeasonGetTeamByPosition(Season season, int position, SeasonStatus* status) {
@@ -155,10 +172,8 @@ Team SeasonGetTeamByPosition(Season season, int position, SeasonStatus* status) 
     return team;
 }
 Team* SeasonGetTeamsStandings(Season season) {
-    if(season == NULL) return NULL;
-    Team * sorted_teams = malloc(sizeof(Team)*season->numOfTeams);
-    if(sorted_teams == NULL) return NULL;
-    sorted_teams = season->teams;
+    if(season == NULL || season->teams == NULL) return NULL;
+    Team * sorted_teams = season->teams;
     QuickSortTeams(sorted_teams, season->numOfTeams);
     return sorted_teams;
 }
@@ -185,7 +200,7 @@ SeasonStatus SeasonAddRaceResult(Season season, int* results) {
             position++;
         }
         DriverAddRaceResult(season->drivers[i], position+1);
-        printf("position=%d\n",position+1);
+        season->last_game[i] = position;
         //PrintDriver(season->drivers[i]);
     }
     return SEASON_OK;
@@ -227,9 +242,9 @@ static void QuickSortDrivers(Driver * drivers ,int n){
     swap_driver(0, n/2, drivers);
     p=DriverGetPoints(drivers[0], &status);
     while(b<=t) {
-        while (t >= b && DriverGetPoints(drivers[t], &status) >= p)
+        while (t >= b && DriverGetPoints(drivers[t], &status) <= p)
             t--;
-        while (b <= t && DriverGetPoints(drivers[b], &status) < p)
+        while (b <= t && DriverGetPoints(drivers[b], &status) > p)
             b++;
         if (b < t)
             swap_driver(b++, t--, drivers);
@@ -247,9 +262,9 @@ static void QuickSortTeams(Team * teams ,int n){
     swap_teams(0, n/2, teams);
     p=TeamGetPoints(teams[0], &status);
     while(b<=t) {
-        while (t >= b && TeamGetPoints(teams[t], &status) >= p)
+        while (t >= b && TeamGetPoints(teams[t], &status) <= p)
             t--;
-        while (b <= t && TeamGetPoints(teams[b], &status) < p)
+        while (b <= t && TeamGetPoints(teams[b], &status) > p)
             b++;
         if (b < t)
             swap_teams(b++, t--, teams);

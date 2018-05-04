@@ -63,13 +63,14 @@ Driver TeamGetDriver(Team  team, DriverNumber driver_number){
     else return NULL;
 }
 int TeamGetPoints(Team  team, TeamStatus *status){
-    if(status != NULL && *status == TEAM_STATUS_OK && team != NULL && team->driver1 != NULL &&
-            team->driver2 != NULL) {
-        DriverStatus driver_status;
-        return DriverGetPoints(team->driver1, &driver_status) +
-               DriverGetPoints(team->driver2, &driver_status);
+    if(status == NULL || team == NULL) {
+        TeamSetStatus(status, TEAM_NULL_PTR);
+        return 0;
     }
-    return 0;
+    TeamSetStatus(status, TEAM_STATUS_OK);
+    DriverStatus driver_status;
+    return DriverGetPoints(team->driver1, &driver_status) +
+           DriverGetPoints(team->driver2, &driver_status);
 }
 
 static void TeamSetStatus(TeamStatus *status, enum teamStatus wanted_status) {
