@@ -7,6 +7,7 @@
 #include "season.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 struct driver {
     int Id;
@@ -16,29 +17,29 @@ struct driver {
     Season season;
 };
 
-void PrintDriver(Driver driver){
-    printf("Driver: ");
-    if(driver == NULL) {
-        printf("null\n");
-    }
-    else {
-        printf("name:%s\nId:%d\nteam:%s\npoints:%d\nseason:%d\n",
-               driver->name, driver->Id, TeamGetName(driver->team),
-               driver->points,
-               GetYear(driver->season));
-    }
+void printDriver(Driver driver){
+    printf("id: %d\n%s\nplays for team %s\npoints: %d\n\n", driver->Id, driver->name,
+           TeamGetName(driver->team), driver-> points);
 }
 
 static void DriverSetStatus(DriverStatus *status, enum driverStatus wanted_status);
 
 Driver DriverCreate(DriverStatus* status, char* driver_name, int driverId) {
+    if(driverId <= 0 || driver_name == NULL) {
+        DriverSetStatus(status, DRIVER_MEMORY_ERROR);
+        return NULL;
+    }
     Driver driver = malloc(sizeof(*driver));
-    if(driver == NULL) DriverSetStatus(status, DRIVER_MEMORY_ERROR);
+    if(driver == NULL) {
+        DriverSetStatus(status, DRIVER_MEMORY_ERROR);
+        return NULL;
+    }
+
     else {
         driver->Id = driverId;
         driver->name = driver_name;
         driver->points = 0;
-        DriverSetStatus(status, DRIVER_STATUS_OK);;
+        DriverSetStatus(status, DRIVER_STATUS_OK);
     }
     return driver;
 }

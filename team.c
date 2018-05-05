@@ -6,6 +6,7 @@
 #include "season.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 struct team {
     char* name;
@@ -15,27 +16,36 @@ struct team {
 
 static void TeamSetStatus(TeamStatus *status, enum teamStatus wanted_status);
 
-void PrintTeam(Team team){
-    printf("Team: ");
+void printTeam(Team team){
     if(team == NULL) {
-        printf("null\n");
+        printf("NULL\n---\n---\n");
     }
     else {
-        printf("name:%s\ndriver1:%s\ndriver2:%s\n",
-               team->name, DriverGetName(team->driver1),
-               DriverGetName(team->driver2));
+        TeamStatus status;
+        printf("%s   %d\n", team->name, TeamGetPoints(team, &status));
+        if (team->driver1 == NULL) printf("---\n");
+        else printDriver(team->driver1);
+        if (team->driver2 == NULL) printf("---\n");
+        else printDriver(team->driver2);
     }
+    printf("\n");
+
 }
 
 Team TeamCreate(TeamStatus* status, char* name){
-    Team team = malloc(sizeof(*team));
-    if(team == NULL)  TeamSetStatus(status, TEAM_MEMORY_ERROR);
-    else {
-        team->name = name;
-        TeamSetStatus(status, TEAM_STATUS_OK);
-        team->driver1 = NULL;
-        team->driver2 = NULL;
+    if( name == NULL) {
+        TeamSetStatus(status, TEAM_NULL_PTR);
+        return NULL;
     }
+    Team team = malloc(sizeof(*team));
+    if(team == NULL){
+        TeamSetStatus(status, TEAM_MEMORY_ERROR);
+        return  NULL;
+    }
+    TeamSetStatus(status, TEAM_STATUS_OK);
+    team->name = name;
+    team->driver1 = NULL;
+    team->driver2 = NULL;
     return team;
 }
 void TeamDestroy(Team team){
@@ -43,18 +53,21 @@ void TeamDestroy(Team team){
 }
 TeamStatus TeamAddDriver(Team team, Driver driver){
     if(team == NULL || driver == NULL) return TEAM_NULL_PTR;
-    if(team->driver1 != NULL) {
-        if (team->driver2 != NULL) return TEAM_FULL;
-        else team->driver2 = driver;
+    if(team->driver1 == NULL) {
+        team->driver1 = driver;
+        return TEAM_STATUS_OK;
     }
-    else team->driver1 = driver;
-    return TEAM_STATUS_OK;
+    else if(team->driver2 == NULL) {
+        team->driver2 = driver;
+        return TEAM_STATUS_OK;
+    }
+    return TEAM_FULL;
 }
 const char * TeamGetName(Team  team){
-    if(team == NULL) return NULL;
+    if(team == NULL || team->name == NULL) return "null";
     return team->name;
 }
-Driver TeamGetDriver(Team  team, DriverNumber driver_number){
+Driver TeamGetDriver(Team team, DriverNumber driver_number){
     if(driver_number == FIRST_DRIVER && team != NULL && team->driver1 != NULL)
         return team->driver1;
     else if(driver_number == SECOND_DRIVER && team != NULL &&
