@@ -140,17 +140,7 @@ Driver SeasonGetDriverByPosition(Season season, int position, SeasonStatus* stat
 Driver* SeasonGetDriversStandings(Season season) {
     if(season == NULL || season->drivers == NULL) return NULL;
     Driver * sorted_drivers = season->drivers;
-    DriverStatus driver_status;
     maxSortDrivers(sorted_drivers, season->numOfDrivers, season->last_game);
-    for(int i=1; i<season->numOfDrivers;i++){
-        if(DriverGetPoints(sorted_drivers[i], &driver_status) ==
-           DriverGetPoints(sorted_drivers[i-1],&driver_status)){
-            if(season->last_game[DriverGetId(sorted_drivers[i])-1]>
-               season->last_game[DriverGetId(sorted_drivers[i-1])-1]){
-                swap_driver(i, i-1, sorted_drivers);
-            }
-        }
-    }
     return sorted_drivers;
 }
 Team SeasonGetTeamByPosition(Season season, int position, SeasonStatus* status) {
