@@ -192,6 +192,10 @@ int SeasonGetNumberOfTeams(Season season) {
 SeasonStatus SeasonAddRaceResult(Season season, int* results) {
     if(season == NULL || results == NULL ||season->drivers == NULL)
         return SEASON_NULL_PTR;
+    //update last_game
+    season->last_game = malloc(sizeof(int)*season->numOfDrivers);
+    for (int i = 0; i < season->numOfDrivers; i++) {
+        season->last_game[i] = results[i];
     for(int i = 0; i<season->numOfDrivers; i++)
     {
         //PrintDriver(season->drivers[i]);
