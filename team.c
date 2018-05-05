@@ -15,16 +15,20 @@ struct team {
 
 static void TeamSetStatus(TeamStatus *status, enum teamStatus wanted_status);
 
-void PrintTeam(Team team){
-    printf("Team: ");
+void printTeam(Team team){
     if(team == NULL) {
-        printf("null\n");
+        printf("NULL\n---\n---\n");
     }
     else {
-        printf("name:%s\ndriver1:%s\ndriver2:%s\n",
-               team->name, DriverGetName(team->driver1),
-               DriverGetName(team->driver2));
+        TeamStatus status;
+        printf("%s   %d\n", team->name, TeamGetPoints(team, &status));
+        if (team->driver1 == NULL) printf("---\n");
+        else printDriver(team->driver1);
+        if (team->driver2 == NULL) printf("---\n");
+        else printDriver(team->driver2);
     }
+    printf("\n");
+
 }
 
 Team TeamCreate(TeamStatus* status, char* name){
@@ -51,10 +55,10 @@ TeamStatus TeamAddDriver(Team team, Driver driver){
     return TEAM_STATUS_OK;
 }
 const char * TeamGetName(Team  team){
-    if(team == NULL) return NULL;
+    if(team == NULL || team->name == NULL) return "null";
     return team->name;
 }
-Driver TeamGetDriver(Team  team, DriverNumber driver_number){
+Driver TeamGetDriver(Team team, DriverNumber driver_number){
     if(driver_number == FIRST_DRIVER && team != NULL && team->driver1 != NULL)
         return team->driver1;
     else if(driver_number == SECOND_DRIVER && team != NULL &&
