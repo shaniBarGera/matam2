@@ -13,7 +13,8 @@ struct season {
     int numOfDrivers;
     Driver* drivers;
 };
-
+static void maxSortDrivers(Driver* drivers, int len, int* last_game);
+static void maxSortTeams(Team* teams, int len, int* last_game);
 static void SeasonSetStatus(SeasonStatus *status,
                             enum seasonStatus wanted_status);
 static char* CopyString(const char* season_info);
@@ -21,10 +22,9 @@ static void MakeDriver(char* word, Season season, int num_of_drivers,
                        int num_of_teams, Driver * drivers, Team * teams);
 static void swap_driver(int a, int b, Driver * arr);
 static void swap_teams(int a, int b, Team * arr);
-static void QuickSortDrivers(Driver * drivers ,int n);
-static void QuickSortTeams(Team * teams ,int n);
+//static void QuickSortDrivers(Driver * drivers ,int n);
+//static void QuickSortTeams(Team * teams ,int n);
 
-int GetYear(Season season) {return season->year;}
 Season SeasonCreate(SeasonStatus* status, const char* season_info) {
     Season season = malloc(sizeof(*season));
 
@@ -111,7 +111,8 @@ void SeasonDestroy(Season season) {
     free(season->drivers);
     free(season);
 }
-Driver SeasonGetDriverByPosition(Season season, int position, SeasonStatus* status) {
+Driver Season
+ByPosition(Season season, int position, SeasonStatus* status) {
     if (season == NULL)
         return NULL;
     if (position > season->numOfDrivers || position <= 0) {
@@ -137,7 +138,7 @@ Driver* SeasonGetDriversStandings(Season season) {
     if(season == NULL || season->drivers == NULL) return NULL;
     Driver * sorted_drivers = season->drivers;
     DriverStatus driver_status;
-    QuickSortDrivers(sorted_drivers, season->numOfDrivers);
+    maxSortDrivers(sorted_drivers, season->numOfDrivers, season->last_game);
     for(int i=1; i<season->numOfDrivers;i++){
         if(DriverGetPoints(sorted_drivers[i], &driver_status) ==
                 DriverGetPoints(sorted_drivers[i-1],&driver_status)){
@@ -174,7 +175,7 @@ Team SeasonGetTeamByPosition(Season season, int position, SeasonStatus* status) 
 Team* SeasonGetTeamsStandings(Season season) {
     if(season == NULL || season->teams == NULL) return NULL;
     Team * sorted_teams = season->teams;
-    QuickSortTeams(sorted_teams, season->numOfTeams);
+    maxSortTeams(sorted_teams, season->numOfTeams, season->last_game);
     return sorted_teams;
 }
 int SeasonGetNumberOfDrivers(Season season) {
@@ -238,7 +239,93 @@ static void swap_teams(int a, int b, Team * arr){
     arr[a] = arr[b];
     arr[b] = temp;
 }
-static void QuickSortDrivers(Driver * drivers ,int n){
+static void maxSortDrivers(Driver* drivers, int len, int* last_game) {
+    int max = 0;
+    int max_pos = 0;
+    int points = 0;
+    int id1 = 0, id2 = 0;
+    DriverStatus* status;
+    *status = DRIVER_STATUS_OK;
+    for (int i = 0; i < len; i++) {
+        max = DriverGetPoints(drivers[i], status);
+        max_pos = i;
+        for (int j = i+1; j < len; j++) {
+            points = DriverGetPoints(drivers[j], status);
+            if (points > max) {
+                max = points;
+                max_pos = j;
+            }
+            //comparing with results in case of tie
+            if (points == max) {
+                for (int k = 0; k < len; k++) {
+                    id1 = DriverGetId(drivers[j]);
+                    id2 = DriverGetId(drivers[max_pos]);
+                    if (last_game[k] == id1) {
+                        max_pos = j;
+                        break; //k = len;
+                    }
+                    else if (last_game[k] == id2) {
+                        break; //k = len;
+                    }
+                }
+            }
+        }
+        swap_driver(i, max_pos, drivers);
+    }
+}
+static void maxSortTeams(Team* teams, int len, int* last_game) {
+    int max = 0;
+    int max_pos = 0;
+    int points = 0;
+    int team1id1 = 0, team1id2 = 0, team2id1 = 0, team2id2 = 0;
+    TeamStatus* status;
+    *status = TEAM_STATUS_OK;
+    for (int i = 0; i < len; i++) {
+        max = TeamGetPoints(teams[i], status);
+        max_pos = i;
+        for (int j = i+1; j < len; j++) {
+            points = TeamGetPoints(teams[j], status);
+            if (points > max) {
+                max = points;
+                max_pos = j;
+            }
+            //comparing with results in case of tie
+            if (points == max) {
+                int points1 = 0, points2 = 0;
+                team1id1 = DriverGetId(TeamGetDriver(teams[j], FIRST_DRIVER));
+                team1id2 = DriverGetId(TeamGetDriver(teams[j], SECOND_DRIVER));
+                team2id1 = DriverGetId(TeamGetDriver(teams[max_pos], FIRST_DRIVER));
+                team2id2 = DriverGetId(TeamGetDriver(teams[max_pos], SECOND_DRIVER));
+                for (int k = 0; k < len; k++) {
+                    if (last_game[k] == team1id1 || last_game[k] == team1id2) {
+                        points1 += (len - (k+1));
+                    }
+                    if (last_game[k] == team2id1 || last_game[k] == team2id2) {
+                        points2 += (len - (k+1));
+                    }
+                }
+                if (points1 > points2) {
+                    max = points;
+                    max_pos = j;
+                }
+                //checks first driver in case of equal team points in last round
+                if (points1 == points2) {
+                    for (int k = 0; k < len; k++) {
+                        if (last_game[k] == team1id1 || last_game[k] == team1id2) {
+                            max_pos = j;
+                            break; //k = len;
+                        }
+                        if (last_game[k] == team2id1 || last_game[k] == team2id2) {
+                            break; //k = len;
+                        }
+                    }
+                }
+            }
+        }
+        swap_teams(i, max_pos, teams);
+    }
+}
+/*static void QuickSortDrivers(Driver * drivers ,int n){
     int p, b = 1, t = n-1;
     DriverStatus status;
     if(n<2)
@@ -277,4 +364,4 @@ static void QuickSortTeams(Team * teams ,int n){
     swap_teams(0, t, teams);
     QuickSortTeams(teams, t);
     QuickSortTeams(teams+t+1, n-t-1);
-}
+}*/
