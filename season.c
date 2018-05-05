@@ -139,7 +139,10 @@ Driver SeasonGetDriverByPosition(Season season, int position, SeasonStatus* stat
 }
 Driver* SeasonGetDriversStandings(Season season) {
     if(season == NULL || season->drivers == NULL) return NULL;
-    Driver * sorted_drivers = season->drivers;
+    Driver* sorted_drivers = malloc(sizeof(Driver)*season->numOfDrivers);
+    for (int i = 0; i < season->numOfDrivers; i++) {
+        sorted_drivers[i] = season->drivers[i];
+    }
     maxSortDrivers(sorted_drivers, season->numOfDrivers, season->last_game);
     return sorted_drivers;
 }
@@ -169,7 +172,10 @@ Team SeasonGetTeamByPosition(Season season, int position, SeasonStatus* status) 
 }
 Team* SeasonGetTeamsStandings(Season season) {
     if(season == NULL || season->teams == NULL) return NULL;
-    Team * sorted_teams = season->teams;
+    Team* sorted_teams = malloc(sizeof(Team)*season->numOfTeams);
+    for (int i=0; i < season->numOfTeams; i++) {
+        sorted_teams[i] = season->teams[i];
+    }
     maxSortTeams(sorted_teams, season->numOfTeams, season->last_game);
     return sorted_teams;
 }
