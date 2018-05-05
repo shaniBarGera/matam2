@@ -290,33 +290,17 @@ static void maxSortTeams(Team* teams, int len, int* last_game) {
             }
             //comparing with results in case of tie
             if (points == max) {
-                int points1 = 0, points2 = 0;
                 team1id1 = DriverGetId(TeamGetDriver(teams[j], FIRST_DRIVER));
                 team1id2 = DriverGetId(TeamGetDriver(teams[j], SECOND_DRIVER));
                 team2id1 = DriverGetId(TeamGetDriver(teams[max_pos], FIRST_DRIVER));
                 team2id2 = DriverGetId(TeamGetDriver(teams[max_pos], SECOND_DRIVER));
                 for (int k = 0; k < len; k++) {
                     if (last_game[k] == team1id1 || last_game[k] == team1id2) {
-                        points1 += (len - (k+1));
+                        max_pos = j;
+                        break; //k = len;
                     }
                     if (last_game[k] == team2id1 || last_game[k] == team2id2) {
-                        points2 += (len - (k+1));
-                    }
-                }
-                if (points1 > points2) {
-                    max = points;
-                    max_pos = j;
-                }
-                //checks first driver in case of equal team points in last round
-                if (points1 == points2) {
-                    for (int k = 0; k < len; k++) {
-                        if (last_game[k] == team1id1 || last_game[k] == team1id2) {
-                            max_pos = j;
-                            break; //k = len;
-                        }
-                        if (last_game[k] == team2id1 || last_game[k] == team2id2) {
-                            break; //k = len;
-                        }
+                        break; //k = len;
                     }
                 }
             }
