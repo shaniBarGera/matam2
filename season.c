@@ -198,8 +198,13 @@ int SeasonGetNumberOfTeams(Season season) {
 SeasonStatus SeasonAddRaceResult(Season season, int* results) {
     if(season == NULL || results == NULL || season->drivers == NULL)
         return SEASON_NULL_PTR;
+<<<<<<< HEAD
 
     //update last_game
+=======
+    //update last_game
+    season->last_game = malloc(sizeof(int)*season->numOfDrivers);
+>>>>>>> e4a6c012ea740d33ef7aad0b37daf43da1a59f96
     for (int i = 0; i < season->numOfDrivers; i++) {
         season->last_game[i] = results[i];
     }
@@ -247,6 +252,82 @@ static void maxSortDrivers(Driver* drivers, int len, int* last_game) {
     int max_pos = 0;
     int points = 0;
     int id1 = 0, id2 = 0;
+<<<<<<< HEAD
+=======
+    DriverStatus* status;
+    *status = DRIVER_STATUS_OK;
+    for (int i = 0; i < len; i++) {
+        max = DriverGetPoints(drivers[i], status);
+        max_pos = i;
+        for (int j = i+1; j < len; j++) {
+            points = DriverGetPoints(drivers[j], status);
+            if (points > max) {
+                max = points;
+                max_pos = j;
+            }
+            //comparing with results in case of tie
+            if (points == max) {
+                for (int k = 0; k < len; k++) {
+                    id1 = DriverGetId(drivers[j]);
+                    id2 = DriverGetId(drivers[max_pos]);
+                    if (last_game[k] == id1) {
+                        max_pos = j;
+                        break; //k = len;
+                    }
+                    else if (last_game[k] == id2) {
+                        break; //k = len;
+                    }
+                }
+            }
+        }
+        swap_driver(i, max_pos, drivers);
+    }
+}
+static void maxSortTeams(Team* teams, int len, int* last_game) {
+    int max = 0;
+    int max_pos = 0;
+    int points = 0;
+    int team1id1 = 0, team1id2 = 0, team2id1 = 0, team2id2 = 0;
+    TeamStatus* status;
+    *status = TEAM_STATUS_OK;
+    for (int i = 0; i < len; i++) {
+        max = TeamGetPoints(teams[i], status);
+        max_pos = i;
+        for (int j = i+1; j < len; j++) {
+            points = TeamGetPoints(teams[j], status);
+            if (points > max) {
+                max = points;
+                max_pos = j;
+            }
+            //comparing with results in case of tie
+            if (points == max) {
+                team1id1 = DriverGetId(TeamGetDriver(teams[j], FIRST_DRIVER));
+                team1id2 = DriverGetId(TeamGetDriver(teams[j], SECOND_DRIVER));
+                team2id1 = DriverGetId(TeamGetDriver(teams[max_pos], FIRST_DRIVER));
+                team2id2 = DriverGetId(TeamGetDriver(teams[max_pos], SECOND_DRIVER));
+                for (int k = 0; k < len; k++) {
+                    if (last_game[k] == team1id1 || last_game[k] == team1id2) {
+                        max_pos = j;
+                        break; //k = len;
+                    }
+                    if (last_game[k] == team2id1 || last_game[k] == team2id2) {
+                        break; //k = len;
+                    }
+                }
+            }
+        }
+        swap_teams(i, max_pos, teams);
+    }
+}
+void printSeason (Season season) {
+    printf("%d\n", season->year);
+    for (int i = 0; i < season->numOfTeams; i++) {
+        printTeam(season->teams[i]);
+    }
+}
+/*static void QuickSortDrivers(Driver * drivers ,int n){
+    int p, b = 1, t = n-1;
+>>>>>>> e4a6c012ea740d33ef7aad0b37daf43da1a59f96
     DriverStatus status;
     for (int i = 0; i < len; i++) {
         max = DriverGetPoints(drivers[i], &status);
@@ -310,9 +391,13 @@ static void maxSortTeams(Team* teams, int len, int* last_game) {
         swap_teams(i, max_pos, teams);
     }
 }
+<<<<<<< HEAD
 void printSeason (Season season) {
     printf("%d\n", season->year);
     for (int i = 0; i < season->numOfTeams; i++) {
         printTeam(season->teams[i]);
     }
 }
+=======
+ */
+>>>>>>> e4a6c012ea740d33ef7aad0b37daf43da1a59f96

@@ -19,7 +19,11 @@ struct driver {
 
 void printDriver(Driver driver){
     printf("id: %d\n%s\nplays for team %s\npoints: %d\n\n", driver->Id, driver->name,
+<<<<<<< HEAD
            TeamGetName(driver->team), driver-> points);
+=======
+    TeamGetName(driver->team), driver-> points);
+>>>>>>> e4a6c012ea740d33ef7aad0b37daf43da1a59f96
 }
 
 static void DriverSetStatus(DriverStatus *status, enum driverStatus wanted_status);
