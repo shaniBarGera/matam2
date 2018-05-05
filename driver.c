@@ -16,17 +16,9 @@ struct driver {
     Season season;
 };
 
-void PrintDriver(Driver driver){
-    printf("Driver: ");
-    if(driver == NULL) {
-        printf("null\n");
-    }
-    else {
-        printf("name:%s\nId:%d\nteam:%s\npoints:%d\nseason:%d\n",
-               driver->name, driver->Id, TeamGetName(driver->team),
-               driver->points,
-               GetYear(driver->season));
-    }
+void printDriver(Driver driver){
+    printf("id: %d\n%s\nplays for team %s\npoints: %d\n\n", driver->Id, driver->name,
+    TeamGetName(driver->team), driver-> points);
 }
 
 static void DriverSetStatus(DriverStatus *status, enum driverStatus wanted_status);
@@ -38,7 +30,7 @@ Driver DriverCreate(DriverStatus* status, char* driver_name, int driverId) {
         driver->Id = driverId;
         driver->name = driver_name;
         driver->points = 0;
-        DriverSetStatus(status, DRIVER_STATUS_OK);;
+        DriverSetStatus(status, DRIVER_STATUS_OK);
     }
     return driver;
 }
