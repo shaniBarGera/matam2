@@ -217,7 +217,7 @@ int SeasonUnitTest(int *tests_passed) {
 }
 
 int main() {
-    /*printf("\nWelcome to the homework 2 tests, written by Vova Parakhin.\n\nPassing those tests won't "
+    printf("\nWelcome to the homework 2 tests, written by Vova Parakhin.\n\nPassing those tests won't "
                    "guarantee you a good grade but they might get you close to one "
                    ",make some tests yourself to be sure.\n\n");
     printf("Press any button to start the tests... \n\n");
@@ -231,28 +231,7 @@ int main() {
     printf("Your grade is: %d\n", score);
     printf("You've passed %d tests out of %d\n", tests_passed, tests_number);
     printf("Enter a char to exit...");
-    getchar();*/
-    SeasonStatus status;
-    Season season = SeasonCreate(&status, "2018\nTeam_1\nDriver_1\nNone\nTeam_2\nDriver_2\nNone\n");
-    SeasonPrintDrivers(season);
-    SeasonPrintTeams(season);
-    int result_1[2] = {1,2};
-    SeasonAddRaceResult(season, result_1);
-    printf("\nround1\n");
-    SeasonPrintDrivers(season);
-    SeasonPrintTeams(season);
-    printf("\nround2\n");
-     SeasonAddRaceResult(season, result_1);
-    SeasonPrintDrivers(season);
-    SeasonPrintTeams(season);
-    int result_2[2] = {2, 1};
-    printf("\nround3\n");
-    SeasonAddRaceResult(season, result_2);
-     SeasonPrintDrivers(season);
-    SeasonPrintTeams(season);
-    printf("\nround4\n");
-    SeasonAddRaceResult(season, result_2);
-    SeasonPrintDrivers(season);
-    SeasonPrintTeams(season);
+    getchar();
+
 
 }

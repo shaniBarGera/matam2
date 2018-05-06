@@ -66,7 +66,7 @@ Driver TeamGetDriver(Team team, DriverNumber driver_number){
 }
 int TeamGetPoints(Team team, TeamStatus *status){
     // Check input
-    if(!team == NULL) {
+    if(!team) {
         SetStatus(status, TEAM_NULL_PTR);
         return 0;
     }

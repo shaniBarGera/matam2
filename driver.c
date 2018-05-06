@@ -17,7 +17,7 @@ static void SetStatus(DriverStatus *status, enum driverStatus wanted_status);
 
 Driver DriverCreate(DriverStatus* status, char* driver_name, int driverId) {
     // Check input
-    if(!driver_name) {
+    if(!driver_name || driverId <= 0) {
         SetStatus(status, INVALID_DRIVER);
         return NULL;
     }
@@ -31,7 +31,6 @@ Driver DriverCreate(DriverStatus* status, char* driver_name, int driverId) {
     driver->name = malloc(sizeof(char) * (strlen(driver_name) + 1));
     if(!driver->name) {
         SetStatus(status, DRIVER_MEMORY_ERROR);
-        return NULL;
     }
 
     // Initialize driver's fields
