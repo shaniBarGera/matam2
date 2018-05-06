@@ -28,7 +28,7 @@ void  DriverSetTeam(Driver driver, Team team);
 void  DriverSetSeason(Driver driver, Season season);
 DriverStatus DriverAddRaceResult(Driver driver, int position);
 int DriverGetPoints(Driver driver, DriverStatus* status);
-
+void printDriver(Driver driver);
 
 
 #endif /* DRIVER_H_ */

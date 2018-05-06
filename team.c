@@ -43,12 +43,14 @@ Team TeamCreate(TeamStatus* status, char* name){
         return  NULL;
     }
     TeamSetStatus(status, TEAM_STATUS_OK);
-    team->name = name;
+    team->name = malloc(sizeof(char)*(strlen(name)+1));
+    strcpy(team->name, name);
     team->driver1 = NULL;
     team->driver2 = NULL;
     return team;
 }
 void TeamDestroy(Team team){
+    if(team != NULL) free(team->name);
     free(team);
 }
 TeamStatus TeamAddDriver(Team team, Driver driver){

@@ -18,7 +18,7 @@ struct driver {
 };
 
 void printDriver(Driver driver){
-    printf("id: %d\n%s\nplays for team %s\npoints: %d\n\n", driver->Id, driver->name,
+    printf("id:%d\nname:%s\nteam:%s\npoints:%d\n\n", driver->Id, driver->name,
            TeamGetName(driver->team), driver-> points);
 }
 
@@ -37,7 +37,8 @@ Driver DriverCreate(DriverStatus* status, char* driver_name, int driverId) {
 
     else {
         driver->Id = driverId;
-        driver->name = driver_name;
+        driver->name = malloc(sizeof(char)*(strlen(driver_name)+1));
+        strcpy(driver->name, driver_name);
         driver->points = 0;
         driver->season = NULL;
         driver->team = NULL;
@@ -46,6 +47,7 @@ Driver DriverCreate(DriverStatus* status, char* driver_name, int driverId) {
     return driver;
 }
 void DriverDestroy(Driver driver){
+    if(driver != NULL) free(driver->name);
     free(driver);
 }
 const char* DriverGetName(Driver driver){
