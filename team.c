@@ -1,11 +1,8 @@
-//
-// Created by shani on 01/05/2018.
-//
 #include "driver.h"
 #include "team.h"
 #include "season.h"
+
 #include <stdlib.h>
-#include <stdio.h>
 #include <string.h>
 
 struct team {
@@ -14,80 +11,72 @@ struct team {
     Driver driver2;
 };
 
-static void TeamSetStatus(TeamStatus *status, enum teamStatus wanted_status);
-
-void printTeam(Team team){
-    if(team == NULL) {
-        printf("NULL\n---\n---\n");
-    }
-    else {
-        TeamStatus status;
-        printf("%s   %d\n", team->name, TeamGetPoints(team, &status));
-        if (team->driver1 == NULL) printf("---\n");
-        else printDriver(team->driver1);
-        if (team->driver2 == NULL) printf("---\n");
-        else printDriver(team->driver2);
-    }
-    printf("\n");
-
-}
+static void SetStatus(TeamStatus *status, enum teamStatus wanted_status);
 
 Team TeamCreate(TeamStatus* status, char* name){
-    if( name == NULL) {
-        TeamSetStatus(status, TEAM_NULL_PTR);
+    // Check input
+    if(!name) {
+        SetStatus(status, TEAM_NULL_PTR);
         return NULL;
     }
+
+    // Allocate memory
     Team team = malloc(sizeof(*team));
-    if(team == NULL){
-        TeamSetStatus(status, TEAM_MEMORY_ERROR);
+    if(!team){
+        SetStatus(status, TEAM_MEMORY_ERROR);
         return  NULL;
     }
-    TeamSetStatus(status, TEAM_STATUS_OK);
     team->name = malloc(sizeof(char)*(strlen(name)+1));
+    if(!team->name){
+        SetStatus(status, TEAM_MEMORY_ERROR);
+        return  NULL;
+    }
+
+    // Initialize fields
     strcpy(team->name, name);
     team->driver1 = NULL;
     team->driver2 = NULL;
+    SetStatus(status, TEAM_STATUS_OK);
+
     return team;
 }
 void TeamDestroy(Team team){
-    if(team != NULL) free(team->name);
+    if(team) free(team->name);
     free(team);
 }
 TeamStatus TeamAddDriver(Team team, Driver driver){
-    if(team == NULL || driver == NULL) return TEAM_NULL_PTR;
-    if(team->driver1 == NULL) {
-        team->driver1 = driver;
-        return TEAM_STATUS_OK;
-    }
-    else if(team->driver2 == NULL) {
-        team->driver2 = driver;
-        return TEAM_STATUS_OK;
-    }
-    return TEAM_FULL;
+    // Check input
+    if(!team || !driver) return TEAM_NULL_PTR;
+
+    // Try to add driver
+    if(team->driver1 && team->driver2) return TEAM_FULL;
+    else if(!team->driver1) team->driver1 = driver;
+    else team->driver2 = driver;
+
+    return TEAM_STATUS_OK;
 }
 const char * TeamGetName(Team  team){
-    if(team == NULL || team->name == NULL) return "null";
+    if(!team) return NULL;
     return team->name;
 }
 Driver TeamGetDriver(Team team, DriverNumber driver_number){
-    if(driver_number == FIRST_DRIVER && team != NULL && team->driver1 != NULL)
-        return team->driver1;
-    else if(driver_number == SECOND_DRIVER && team != NULL &&
-            team->driver2 != NULL)
-        return team->driver2;
+    if(driver_number == FIRST_DRIVER && team) return team->driver1;
+    else if(driver_number == SECOND_DRIVER && team) return team->driver2;
     else return NULL;
 }
-int TeamGetPoints(Team  team, TeamStatus *status){
-    if(status == NULL || team == NULL) {
-        TeamSetStatus(status, TEAM_NULL_PTR);
+int TeamGetPoints(Team team, TeamStatus *status){
+    // Check input
+    if(!team == NULL) {
+        SetStatus(status, TEAM_NULL_PTR);
         return 0;
     }
-    TeamSetStatus(status, TEAM_STATUS_OK);
-    DriverStatus driver_status;
-    return DriverGetPoints(team->driver1, &driver_status) +
-           DriverGetPoints(team->driver2, &driver_status);
+
+    // Return points
+    SetStatus(status, TEAM_STATUS_OK);
+    return DriverGetPoints(team->driver1, NULL) +
+            DriverGetPoints(team->driver2, NULL);
 }
 
-static void TeamSetStatus(TeamStatus *status, enum teamStatus wanted_status) {
-    if (status != NULL) *status = wanted_status;
+static void SetStatus(TeamStatus *status, enum teamStatus wanted_status) {
+    if(status) *status = wanted_status;
 }

@@ -1,108 +1,105 @@
-#include <stdio.h>
+#include "driver.h"
+#include "team.h"
+#include "season.h"
+
 #include <string.h>
 #include <stdlib.h>
-#include "season.h"
-#include "team.h"
-#include "driver.h"
+#include <stdbool.h>
 
 struct season {
     int year;
-    int numOfTeams;
+    int drivers_num;
+    Driver* drivers;
+    int teams_num;
     Team* teams;
     int* last_game;
-    int numOfDrivers;
-    Driver* drivers;
 };
-static void maxSortDrivers(Driver* drivers, int len, const int* last_game);
-static void maxSortTeams(Team* teams, int len, const int* last_game);
-static void SeasonSetStatus(SeasonStatus *status,
-                            enum seasonStatus wanted_status);
-static void MakeDriver(char* word, Season season, int num_of_drivers,
-                       int num_of_teams, Driver * drivers, Team * teams);
-static void swap_driver(int a, int b, Driver * arr);
-static void swap_teams(int a, int b, Team * arr);
-//static void QuickSortDrivers(Driver * drivers ,int n);
-//static void QuickSortTeams(Team * teams ,int n);
+
+static void SetStatus(SeasonStatus *status, enum seasonStatus wanted_status);
+static void SetDriver(Driver* drivers, Team* teams, char* word, Season season);
+static void MaxSortDrivers(Driver* drivers, int len, const int* last_game);
+static void MaxSortTeams(Team* teams, int len, const int* last_game);
+static void SwapDriver(Driver* arr, int a, int b);
+static void SwapTeam(Team* arr, int a, int b);
+static bool CheckString(const char* string, SeasonStatus* status,
+                       Season season, enum seasonStatus wanted_status);
+static bool CheckSeason(Season season, SeasonStatus* status,
+                        enum seasonStatus wanted_status);
+static bool CheckDrivers(Driver* drivers, SeasonStatus* status, Season season,
+                         enum seasonStatus wanted_status);
+static bool CheckTeams(Team* teams, SeasonStatus* status, Season season,
+                       enum seasonStatus wanted_status);
+static bool CheckResults(int* results, SeasonStatus* status, Season season,
+                       enum seasonStatus wanted_status);
 
 Season SeasonCreate(SeasonStatus* status, const char* season_info) {
+    // Check inputs
+    if(CheckString(season_info, status, NULL, SEASON_NULL_PTR)) return NULL;
+
+    // Allocate memory to season and it's arrays and initialize them
     Season season = malloc(sizeof(*season));
-
-    //Check inputs
-    if (!season || !season_info) {
-        SeasonSetStatus(status, SEASON_NULL_PTR);
-        return NULL;
-    }
-
-    //Split info to words
-    char * info_aux = malloc(sizeof(char)*(strlen(season_info)+1));
-    strcpy(info_aux, season_info);
-    char * word = strtok(info_aux, "\n");
-
-    //allocate memory to arrays and initialize them
+    if(CheckSeason(season, status, SEASON_MEMORY_ERROR)) return NULL;
+    season->drivers = malloc(sizeof(Driver));;
     season->teams = malloc(sizeof(Team));
-    season->drivers = malloc(sizeof(Driver));
-    if(!season->teams || !season->drivers){
-        SeasonSetStatus(status ,SEASON_MEMORY_ERROR);
-        free(info_aux);
-        free(word);
+    if(CheckDrivers(season->drivers, status, season, SEASON_MEMORY_ERROR)||
+       CheckTeams(season->teams, status, season, SEASON_MEMORY_ERROR))
         return NULL;
-    }
-    season->teams[0] = NULL;
     season->drivers[0] = NULL;
+    season->teams[0] = NULL;
 
-    //Enter year
+    // Split info to words
+    char* info_aux = malloc(sizeof(char) * (strlen(season_info) + 1));
+    if(CheckString(info_aux, status, season, SEASON_MEMORY_ERROR)) return NULL;
+    strcpy(info_aux, season_info);
+    char* word = strtok(info_aux, "\n");
+
+    // Initialize variables
+    int counter = 0;
+    season->drivers_num = 0;
+    season->teams_num = 0;
     season->year = atoi(word);
     word = strtok(NULL, "\n");
 
-    //Initialize variables
-    season->numOfTeams = 0;
-    season->numOfDrivers = 0;
-    int counter = 0;
-
-    //Go through info
+    // Update info
     while (word) {
-        //make team
-        if (counter % 3 == 0) {
-            TeamStatus team_status;
-            season->teams = (Team*)realloc(season->teams, sizeof(Team)*
-                                                  (season->numOfTeams+1));
-            season->teams[season->numOfTeams] = TeamCreate(&team_status, word);
-            season->numOfTeams++;
+        if (counter % 3 == 0) {     // Make team
+            season->teams = (Team*)realloc(season->teams,
+                              sizeof(Team) * (season->teams_num + 1));
+            season->teams[season->teams_num] = TeamCreate(NULL, word);
+            season->teams_num++;
+        } else if (strcmp(word, "None")) {    // Make driver
+            season->drivers = (Driver*)realloc(season->drivers,
+                               sizeof(Driver) * (season->drivers_num + 1));
+            SetDriver(season->drivers, season->teams, word, season);
+            season->drivers_num++;
         }
 
-            //make driver
-        else if (strcmp(word, "None")) {
-            season->drivers = (Driver*)realloc(season->drivers, sizeof(Driver)*
-                    (season->numOfDrivers+1));
-            MakeDriver(word, season, season->numOfDrivers, season->numOfTeams-1,
-                       season->drivers, season->teams);
-            //PrintDriver(season->drivers[season->numOfDrivers]);
-            season->numOfDrivers++;
-        }
-        //if(counter %3 == 2) PrintTeam(season->teams[season->numOfTeams-1]);
         counter++;
         word = strtok(NULL, "\n");
     }
 
-    season->last_game = malloc(sizeof(int)*season->numOfDrivers);
-    for(int i =0; i<season->numOfDrivers; i++){
+    // Allocate and initialize last game
+    season->last_game = malloc(sizeof(int) * season->drivers_num);
+    if(CheckResults(season->last_game, status, season, SEASON_MEMORY_ERROR))
+        return NULL;
+    for(int i = 0; i < season->drivers_num; i++){
         season->last_game[i] = 0;
     }
+
     free(info_aux);
     free(word);
-    SeasonSetStatus(status, SEASON_OK);
+    SetStatus(status, SEASON_OK);
     return season;
 }
 void SeasonDestroy(Season season) {
-    if(season == NULL) return;
-    //printSeason(season); //delete
-    if(season->drivers != NULL) {
-        for (int i = 0; i < season->numOfDrivers; i++){
+    if(!season) return;
+    if(season->drivers) {
+        for (int i = 0; i < season->drivers_num; i++){
             DriverDestroy(season->drivers[i]);
         }
     }
-    if(season->teams != NULL) {
-        for (int i = 0; i < season->numOfTeams; i++) {
+    if(season->teams) {
+        for (int i = 0; i < season->teams_num; i++) {
             TeamDestroy(season->teams[i]);
         }
     }
@@ -111,17 +108,15 @@ void SeasonDestroy(Season season) {
     free(season->drivers);
     free(season);
 }
-Driver SeasonGetDriverByPosition(Season season, int position, SeasonStatus* status) {
-    if (season == NULL){
-        SeasonSetStatus(status, SEASON_NULL_PTR);
-        return NULL;
-    }
-    if (position > season->numOfDrivers || position <= 0) {
-        SeasonSetStatus(status, BAD_SEASON_INFO);
+Driver SeasonGetDriverByPosition(Season season, int position,
+                                 SeasonStatus* status) {
+    // Check input
+    if(CheckSeason(season, status, SEASON_NULL_PTR)) return NULL;
+    if (position > season->drivers_num || position <= 0) {
+        SetStatus(status, BAD_SEASON_INFO);
         return NULL;
     }
 
-    SeasonSetStatus(status, SEASON_OK);
     Driver * sorted_drivers = SeasonGetDriversStandings(season);
     if(sorted_drivers == NULL){
         free(sorted_drivers);
@@ -133,6 +128,7 @@ Driver SeasonGetDriverByPosition(Season season, int position, SeasonStatus* stat
         return NULL;
     }
     free(sorted_drivers);
+    SetStatus(status, SEASON_OK);
     return driver;
 }
 Driver* SeasonGetDriversStandings(Season season) {
@@ -211,14 +207,16 @@ SeasonStatus SeasonAddRaceResult(Season season, int* results) {
 static void SeasonSetStatus(SeasonStatus *status, SeasonStatus wanted_status) {
     if (status != NULL) *status = wanted_status;
 }
-static void MakeDriver(char* word, Season season, int num_of_drivers,
-                       int num_of_teams, Driver * drivers, Team * teams){
+static void SetDriver(Driver * drivers, Team * teams, char* word,
+                      Season season) {
+    int drivers_num = SeasonGetNumberOfDrivers(season),
+            teams_num = SeasonGetNumberOfTeams(season) - 1;
     DriverStatus driver_status;
-    drivers[num_of_drivers] = DriverCreate(&driver_status, word,
-                                           num_of_drivers+1);
-    DriverSetTeam(drivers[num_of_drivers], teams[num_of_teams]);
-    TeamAddDriver(teams[num_of_teams], drivers[num_of_drivers]);
-    DriverSetSeason(drivers[num_of_drivers], season);
+    drivers[drivers_num] = DriverCreate(&driver_status, word,
+                                           drivers_num + 1);
+    DriverSetTeam(drivers[drivers_num], teams[teams_num]);
+    TeamAddDriver(teams[teams_num], drivers[drivers_num]);
+    DriverSetSeason(drivers[drivers_num], season);
 }
 static void swap_driver(int a, int b, Driver* arr){
     Driver temp = arr[a];
@@ -302,31 +300,47 @@ static void maxSortTeams(Team* teams, int len, const int* last_game) {
         swap_teams(i, max_pos, teams);
     }
 }
-void SeasonPrintTeams (Season season) {
-    TeamStatus status;
-    printf("\nSeason:%d\nTeamsNum:%d\nTeams:\n",season->year,season->numOfTeams);
-    for(int i=0; i<season->numOfTeams; i++){
-        printf("%d.%s %d\n",i,TeamGetName(season->teams[i]),
-               TeamGetPoints(season->teams[i], &status));
+static bool CheckString(const char* string, SeasonStatus* status,
+                         Season season, enum seasonStatus wanted_status){
+    if(!string) {
+        SetStatus(status, wanted_status);
+        SeasonDestroy(season);
+        return true;
     }
-    printf("\nDriversStandings:\n");
-    Team * sorted_teams = SeasonGetTeamsStandings(season);
-    for(int i=0; i<season->numOfTeams; i++){
-        printf("%d.%s %d\n",i,TeamGetName(sorted_teams[i]),
-               TeamGetPoints(sorted_teams[i], &status));
-    }
+    return false;
 }
-void SeasonPrintDrivers(Season season){
-    DriverStatus status;
-    printf("\nSeason:%d\nDriversNum:%d\nDrivers:\n",season->year,season->numOfDrivers);
-    for(int i=0; i<season->numOfDrivers; i++){
-        printf("%d.%s %d\n",i,DriverGetName(season->drivers[i]),
-        DriverGetPoints(season->drivers[i], &status));
+static bool CheckSeason(Season season, SeasonStatus* status,
+                        enum seasonStatus wanted_status){
+    if(!season) {
+        SetStatus(status, wanted_status);
+        return true;
     }
-    printf("\nDriversStandings:\n");
-    Driver * sorted_drivers = SeasonGetDriversStandings(season);
-    for(int i=0; i<season->numOfDrivers; i++){
-        printf("%d.%s %d\n",i,DriverGetName(sorted_drivers[i]),
-               DriverGetPoints(sorted_drivers[i], &status));
+    return false;
+}
+static bool CheckDrivers(Driver* drivers, SeasonStatus* status, Season season,
+                         enum seasonStatus wanted_status){
+    if(!drivers) {
+        SetStatus(status, wanted_status);
+        SeasonDestroy(season);
+        return true;
     }
+    return false;
+}
+static bool CheckTeams(Team* teams, SeasonStatus* status, Season season,
+                       enum seasonStatus wanted_status){
+    if(!teams) {
+        SetStatus(status, wanted_status);
+        SeasonDestroy(season);
+        return true;
+    }
+    return false;
+}
+static bool CheckResults(int* results, SeasonStatus* status, Season season,
+                         enum seasonStatus wanted_status){
+    if(!results) {
+        SetStatus(status, wanted_status);
+        SeasonDestroy(season);
+        return true;
+    }
+    return false;
 }
